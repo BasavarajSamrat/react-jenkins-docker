@@ -1,59 +1,58 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_USERNAME = 'basavarajsamrat' // Your Docker Hub username
+        DOCKER_PASSWORD = 'Bassu5@2002docker' // Your Docker Hub password (you may want to use credentials instead of hardcoding this)
+    }
+
     stages {
         stage('Checkout') {
             steps {
-                // Check out code from GitHub
-                git url: 'https://github.com/BasavarajSamrat/sample-web-app.git', branch: 'main'
+                git 'https://github.com/BasavarajSamrat/react-jenkins-docker.git' // Your GitHub repository URL
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                // Build Docker image
-                sh 'docker build -t sample-web-app:latest .'
+                script {
+                    // Build the Docker image and tag it with the build ID
+                    docker.build("${DOCKER_USERNAME}/react-app:${env.BUILD_ID}")
+                }
             }
         }
 
-        stage('Tag Image') {
+        stage('Login to Docker Hub') {
             steps {
-                // Tag Docker image for Docker Hub
-                sh 'docker tag sample-web-app:latest basavarajsamrat/sample-web-app:latest'
+                // Log in to Docker Hub
+                sh "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
             }
         }
 
         stage('Push Image to Docker Hub') {
             steps {
-                // Use Docker Hub credentials to log in and push the image
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                    sh 'docker push basavarajsamrat/sample-web-app:latest'
+                script {
+                    // Push the image to Docker Hub
+                    docker.image("${DOCKER_USERNAME}/react-app:${env.BUILD_ID}").push()
                 }
             }
         }
 
-        stage('Pull Image from Docker Hub') {
+        stage('Deploy with Docker Compose') {
             steps {
-                // Pull the image from Docker Hub
-                sh 'docker pull basavarajsamrat/sample-web-app:latest'
-            }
-        }
-
-        stage('Run Docker Container') {
-            steps {
-                // Remove any existing container and run a new one
-                sh '''
-                docker rm -f sample-web-app || true
-                docker run -d -p 80:80 --name sample-web-app basavarajsamrat/sample-web-app:latest
-                '''
+                script {
+                    // Take down any running containers and bring up the new ones
+                    sh 'docker-compose down'
+                    sh 'docker-compose up -d'
+                }
             }
         }
     }
 
     post {
         always {
-            echo 'Pipeline completed.'
+            // Always take down the containers after the pipeline completes
+            sh 'docker-compose down'
         }
     }
 }
