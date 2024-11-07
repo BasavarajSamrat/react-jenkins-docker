@@ -6,12 +6,12 @@ pipeline {
         DOCKER_PASSWORD = 'Bassu5@2002docker' // Your Docker Hub password (you may want to use credentials instead of hardcoding this)
     }
 
-    stages {
-        stage('Checkout') {
-            steps {
-                git : 'main' , 'https://github.com/BasavarajSamrat/react-jenkins-docker.git' // Your GitHub repository URL
-            }
-        }
+    stage('Checkout') {
+    steps {
+        git branch: 'main', url: 'https://github.com/BasavarajSamrat/react-jenkins-docker.git'
+    }
+}
+
 
         stage('Build Docker Image') {
             steps {
