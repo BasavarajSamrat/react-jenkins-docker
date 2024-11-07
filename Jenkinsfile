@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/BasavarajSamrat/react-jenkins-docker.git' // Your GitHub repository URL
+                git : 'main' , 'https://github.com/BasavarajSamrat/react-jenkins-docker.git' // Your GitHub repository URL
             }
         }
 
