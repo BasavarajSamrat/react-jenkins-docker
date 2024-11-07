@@ -2,16 +2,17 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_USERNAME = 'basavarajsamrat' // Your Docker Hub username
-        DOCKER_PASSWORD = 'Bassu5@2002docker' // Your Docker Hub password (you may want to use credentials instead of hardcoding this)
+        DOCKER_USERNAME = 'basavarajsamrat' // Docker Hub username
+        // Use Jenkins credentials instead of hardcoding the password
+        // Create credentials in Jenkins and refer to them by their ID
     }
 
-    stage('Checkout') {
-    steps {
-        git branch: 'main', url: 'https://github.com/BasavarajSamrat/react-jenkins-docker.git'
-    }
-}
-
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/BasavarajSamrat/react-jenkins-docker.git'
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
@@ -24,8 +25,9 @@ pipeline {
 
         stage('Login to Docker Hub') {
             steps {
-                // Log in to Docker Hub
-                sh "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USERNAME} --password-stdin"
+                }
             }
         }
 
