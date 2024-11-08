@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/BasavarajSamrat/react-jenkins-docker.git
+                git 'https://github.com/BasavarajSamrat/react-jenkins-docker.git'
             }
         }
         stage('Build Docker Image') {
@@ -16,9 +16,13 @@ pipeline {
         stage('Deploy with Docker Compose') {
             steps {
                 script {
-                    sh 'docker-compose down'
+                    // Bring down any existing containers, ignoring errors if no containers are running
+                    sh 'docker-compose down || true'
+                    
+                    // Start new containers in detached mode
                     sh 'docker-compose up -d'
                 }
             }
         }
     }
+}
