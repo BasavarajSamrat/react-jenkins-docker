@@ -1,33 +1,38 @@
 pipeline {
     agent any
+
+    tools {
+        nodejs 'NodeJS 18'
+    }
+
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/BasavarajSamrat/react-jenkins-docker.git'
+               
             }
         }
-        stage('Build Docker Image') {
+        stage('Install Dependencies') {
             steps {
-                script {
-                    docker.build("basavarajsamrat/react-app:${env.BUILD_ID}")
-                }
+                sh 'npm install'
             }
         }
-        stage('Deploy with Docker Compose') {
+        stage('Build') {
             steps {
-                script {
-                    // Bring down any existing containers, ignoring errors if no containers are running
-                    sh 'docker-compose down || true'
-                    
-                    // Start new containers in detached mode
-                    sh 'docker-compose up -d'
-                }
+                sh 'npm run build'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh 'cp -r build/* /opt/tomcat/webapps/ROOT/'
             }
         }
     }
-     post {
+
+    post {
         always {
-            sh 'docker-compose down'
+            echo 'Pipeline completed.'
+            deleteDir()
         }
     }
 }
